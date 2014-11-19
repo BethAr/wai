@@ -9,6 +9,8 @@ module Network.Wai.Handler.Warp.Response (
   , fileRange -- for testing
   , warpVersion
   , defaultServerValue
+  , addDate
+  , addServer
   ) where
 
 #ifndef MIN_VERSION_base

@@ -25,6 +25,7 @@ import Network.Wai.Handler.Warp.Buffer
 import Network.Wai.Handler.Warp.Counter
 import qualified Network.Wai.Handler.Warp.Date as D
 import qualified Network.Wai.Handler.Warp.FdCache as F
+import Network.Wai.Handler.Warp.HTTP2
 import Network.Wai.Handler.Warp.Header
 import Network.Wai.Handler.Warp.ReadInt
 import Network.Wai.Handler.Warp.Recv
@@ -298,10 +299,17 @@ serveConnection conn ii origAddr transport settings app = do
     istatus <- newIORef False
     src <- mkSource (connSource conn th istatus)
     addr <- getProxyProtocolAddr src
-    http1 addr istatus src `E.catch` \e -> do
-        sendErrorResponse addr istatus e
-        throwIO (e :: SomeException)
-
+    if isHTTP2 transport then
+        http2 conn ii addr transport settings src app
+      else do
+        bs <- readSource src
+        leftoverSource src bs
+        if S.length bs >= 4 && S.isPrefixOf "PRI " bs then
+            http2 conn ii addr transport settings src app
+          else
+            http1 addr istatus src `E.catch` \e -> do
+                sendErrorResponse addr istatus e
+                throwIO (e :: SomeException)
   where
     getProxyProtocolAddr src =
         case settingsProxyProtocol settings of

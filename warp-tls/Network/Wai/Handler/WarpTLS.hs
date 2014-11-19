@@ -239,12 +239,25 @@ runTLSSocket' tlsset@TLSSettings{..} set credential sock app =
       , TLS.serverSupported = def {
           TLS.supportedVersions = tlsAllowedVersions
         , TLS.supportedCiphers  = tlsCiphers
+        , TLS.supportedHashSignatures = [
+            (TLS.HashSHA256, TLS.SignatureRSA)
+          , (TLS.HashSHA1, TLS.SignatureRSA)
+          ]
         }
       , TLS.serverShared = def {
           TLS.sharedCredentials = TLS.Credentials [credential]
         }
-      , TLS.serverHooks = tlsServerHooks
+      , TLS.serverHooks = tlsServerHooks {
+          TLS.onALPNClientSuggest = Just alpn
+        }
       }
+
+alpn :: [S.ByteString] -> IO S.ByteString
+alpn xs
+  | "h2-16" `elem` xs = return "h2-16"
+  | "h2-15" `elem` xs = return "h2-15"
+  | "h2-14" `elem` xs = return "h2-14"
+  | otherwise         = return "http/1.1"
 
 ----------------------------------------------------------------
 

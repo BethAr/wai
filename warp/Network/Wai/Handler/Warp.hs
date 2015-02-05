@@ -87,7 +87,6 @@ module Network.Wai.Handler.Warp (
   , HostPreference (..)
   , Port
   , InvalidRequest (..)
-  , ConnSendFileOverride (..)
     -- * Per-request utilities
   , pauseTimeout
     -- * Connection

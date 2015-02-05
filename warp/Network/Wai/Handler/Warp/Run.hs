@@ -48,18 +48,19 @@ import Network.Socket (fdSocket)
 -- | Default action value for 'Connection'.
 socketConnection :: Socket -> IO Connection
 socketConnection s = do
-    readBuf <- allocateBuffer bufferSize
+    readBuf  <- allocateBuffer bufferSize
     writeBuf <- allocateBuffer bufferSize
+    fileBuf  <- allocateBuffer bufferSize
     return Connection {
         connSendMany = Sock.sendMany s
       , connSendAll = Sock.sendAll s
       , connSendFile = defaultSendFile s
-      , connClose = sClose s >> freeBuffer readBuf >> freeBuffer writeBuf
+      , connClose = sClose s >> freeBuffer readBuf >> freeBuffer writeBuf >> freeBuffer fileBuf
       , connRecv = receive s readBuf bufferSize
       , connReadBuffer = readBuf
       , connWriteBuffer = writeBuf
+      , connFileBuffer = fileBuf
       , connBufferSize = bufferSize
-      , connSendFileOverride = Override s
       }
 
 #if __GLASGOW_HASKELL__ < 702

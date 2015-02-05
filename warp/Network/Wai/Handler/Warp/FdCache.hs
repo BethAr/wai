@@ -2,7 +2,7 @@
 
 -- | File descriptor cache to avoid locks in kernel.
 
-#ifndef SENDFILEFD
+#if WINDOWS
 module Network.Wai.Handler.Warp.FdCache (
     withFdCache
   , MutableFdCache
